@@ -1,4 +1,4 @@
-// ===== Ermi App - 55-Day New Testament Reading Tracker =====
+// ===== Ephi App - 55-Day New Testament Reading Tracker =====
 
 // Bible data structure
 const bibleData = {
@@ -55,7 +55,7 @@ function generateFixedReadingPlan() {
             date: null // Will be set based on start date
         };
         
-        // Determine how many chapters for this day (aim for even distribution)
+        // DetEphine how many chapters for this day (aim for even distribution)
         const remainingDays = totalDays - day + 1;
         const remainingChapters = totalNTChapters - (plan.reduce((total, d) => {
             return total + d.passages.reduce((sum, p) => sum + (p.endChapter - p.startChapter + 1), 0);
@@ -116,7 +116,7 @@ assignDatesToPlan();
 
 // Load saved progress from localStorage
 function loadProgress() {
-    const savedProgress = localStorage.getItem('ermi-progress');
+    const savedProgress = localStorage.getItem('Ephi-progress');
     if (savedProgress) {
         const completedDays = JSON.parse(savedProgress);
         completedDays.forEach(dayNum => {
@@ -142,7 +142,7 @@ function saveProgress() {
     const completedDays = readingPlan
         .filter(day => day.completed)
         .map(day => day.day);
-    localStorage.setItem('ermi-progress', JSON.stringify(completedDays));
+    localStorage.setItem('Ephi-progress', JSON.stringify(completedDays));
 }
 
 // Update current day based on progress
@@ -382,15 +382,15 @@ async function setupNotifications() {
     if ('Notification' in window && 'serviceWorker' in navigator) {
         const banner = document.getElementById('notification-banner');
         
-        if (Notification.permission === 'granted') {
+        if (Notification.pEphission === 'granted') {
             banner.classList.add('hidden');
             scheduleDailyNotification();
-        } else if (Notification.permission !== 'denied') {
+        } else if (Notification.pEphission !== 'denied') {
             banner.classList.remove('hidden');
             
             document.getElementById('enable-notifications').addEventListener('click', async () => {
-                const permission = await Notification.requestPermission();
-                if (permission === 'granted') {
+                const pEphission = await Notification.requestPEphission();
+                if (pEphission === 'granted') {
                     banner.classList.add('hidden');
                     scheduleDailyNotification();
                 }
@@ -417,7 +417,7 @@ function scheduleDailyNotification() {
                 const timeUntilNotification = notificationTime - now;
                 
                 setTimeout(() => {
-                    registration.showNotification('Ermi - Daily Reading Reminder', {
+                    registration.showNotification('Ephi - Daily Reading Reminder', {
                         body: 'Time for today\'s New Testament reading!',
                         icon: 'icons/icon-192x192.png',
                         badge: 'icons/icon-72x72.png',
@@ -427,7 +427,7 @@ function scheduleDailyNotification() {
                     });
                     
                     setInterval(() => {
-                        registration.showNotification('Ermi - Daily Reading Reminder', {
+                        registration.showNotification('Ephi - Daily Reading Reminder', {
                             body: 'Time for today\'s New Testament reading!',
                             icon: 'icons/icon-192x192.png',
                             badge: 'icons/icon-72x72.png',
@@ -495,4 +495,5 @@ document.addEventListener('DOMContentLoaded', () => {
 // Export for testing (if needed)
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = { readingPlan, bibleData };
+
 }
