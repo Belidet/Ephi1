@@ -47,6 +47,19 @@
         <p class="app-subtitle">55-Day New Testament Reading Plan</p>
     </header>
     
+    <!-- Today's Reading Highlight -->
+    <div class="today-highlight" id="today-highlight"></div>
+
+    <!-- Progress Bar -->
+    <div class="progress-container">
+        <div class="progress-stats">
+            <span id="completed-count">0</span>/<span id="total-days">55</span> Days Completed
+        </div>
+        <div class="progress-bar">
+            <div id="progress-fill" class="progress-fill" style="width: 0%"></div>
+        </div>
+    </div>
+    
     <!-- Calendar Section -->
     <div class="calendar-container">
         <div class="calendar-header">
@@ -66,22 +79,9 @@
         <div id="calendar-days" class="calendar-days"></div>
     </div>
 
-    <!-- Today's Reading Highlight -->
-    <div class="today-highlight" id="today-highlight"></div>
-
-    <!-- Progress Bar -->
-    <div class="progress-container">
-        <div class="progress-stats">
-            <span id="completed-count">0</span>/<span id="total-days">55</span> Days Completed
-        </div>
-        <div class="progress-bar">
-            <div id="progress-fill" class="progress-fill" style="width: 0%"></div>
-        </div>
-    </div>
-
-    <!-- Notification PEphission Banner -->
+    <!-- Notification Permission Banner -->
     <div id="notification-banner" class="notification-banner hidden">
-        <p>Receive daily reminders for your reading</p>
+        <p>🔔 Receive daily reminders for your reading</p>
         <button id="enable-notifications" class="btn-notification">Enable Reminders</button>
     </div>
 
@@ -105,5 +105,4 @@
     <!-- JavaScript -->
     <script src="app.js"></script>
 </body>
-
 </html>
