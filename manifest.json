@@ -1,6 +1,6 @@
 {
-  "name": "Ermi - 55-Day New Testament Reading",
-  "short_name": "Ermi",
+  "name": "Ephi - 55-Day New Testament Reading",
+  "short_name": "Ephi",
   "description": "A guided Bible reading tracker with Eastern Orthodox inspiration. Read the entire New Testament in 55 days.",
   "start_url": "/",
   "display": "standalone",
@@ -93,4 +93,5 @@
       "type": "image/jpeg"
     }
   ]
+
 }
