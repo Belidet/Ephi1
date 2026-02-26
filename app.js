@@ -1,4 +1,5 @@
 // ===== Ephi App - 55-Day New Testament Reading Tracker =====
+// Enhanced UI/UX Version with Modern Card Design
 
 // Bible data structure
 const bibleData = {
@@ -34,7 +35,7 @@ const bibleData = {
 };
 
 // Calculate total chapters in New Testament
-const totalNTChapters = bibleData.books.reduce((total, book) => total + book.chapters, 0); // Should be 260
+const totalNTChapters = bibleData.books.reduce((total, book) => total + book.chapters, 0); // 260 chapters
 
 // Fixed 55-day reading plan
 function generateFixedReadingPlan() {
@@ -43,27 +44,21 @@ function generateFixedReadingPlan() {
     let currentBook = 0;
     let currentChapter = 1;
     
-    // Calculate average chapters per day (260/55 ≈ 4.73)
-    // We'll distribute chapters as evenly as possible
-    
     for (let day = 1; day <= totalDays; day++) {
         let reading = {
             day: day,
             passages: [],
             completed: false,
             isCurrent: false,
-            date: null // Will be set based on start date
+            date: null
         };
         
-        // DetEphine how many chapters for this day (aim for even distribution)
         const remainingDays = totalDays - day + 1;
         const remainingChapters = totalNTChapters - (plan.reduce((total, d) => {
             return total + d.passages.reduce((sum, p) => sum + (p.endChapter - p.startChapter + 1), 0);
         }, 0));
         
-        // Target chapters per day, rounding appropriately
         let chaptersPerDay = Math.round(remainingChapters / remainingDays);
-        // Ensure at least 1 chapter per day and not too many
         chaptersPerDay = Math.max(1, Math.min(8, chaptersPerDay));
         
         while (chaptersPerDay > 0 && currentBook < bibleData.books.length) {
@@ -71,7 +66,6 @@ function generateFixedReadingPlan() {
             const remainingInBook = book.chapters - currentChapter + 1;
             
             if (remainingInBook <= chaptersPerDay) {
-                // Take the rest of this book
                 reading.passages.push({
                     book: book.name,
                     startChapter: currentChapter,
@@ -81,7 +75,6 @@ function generateFixedReadingPlan() {
                 currentBook++;
                 currentChapter = 1;
             } else {
-                // Take part of this book
                 reading.passages.push({
                     book: book.name,
                     startChapter: currentChapter,
@@ -98,11 +91,11 @@ function generateFixedReadingPlan() {
     return plan;
 }
 
-// Initialize reading plan (fixed, not regenerated)
+// Initialize reading plan
 let readingPlan = generateFixedReadingPlan();
 
 // Set start date (February 16, 2026)
-const START_DATE = new Date(2026, 1, 16); // Month is 0-indexed, so 1 = February
+const START_DATE = new Date(2026, 1, 16);
 
 // Assign dates to each day
 function assignDatesToPlan() {
@@ -116,7 +109,7 @@ assignDatesToPlan();
 
 // Load saved progress from localStorage
 function loadProgress() {
-    const savedProgress = localStorage.getItem('Ephi-progress');
+    const savedProgress = localStorage.getItem('ephi-progress');
     if (savedProgress) {
         const completedDays = JSON.parse(savedProgress);
         completedDays.forEach(dayNum => {
@@ -126,11 +119,9 @@ function loadProgress() {
             }
         });
         
-        // Update current day
         updateCurrentDay();
     }
     
-    // Update UI after loading
     renderReadingList();
     updateProgressBar();
     renderCalendar();
@@ -142,15 +133,13 @@ function saveProgress() {
     const completedDays = readingPlan
         .filter(day => day.completed)
         .map(day => day.day);
-    localStorage.setItem('Ephi-progress', JSON.stringify(completedDays));
+    localStorage.setItem('ephi-progress', JSON.stringify(completedDays));
 }
 
 // Update current day based on progress
 function updateCurrentDay() {
-    // Reset current flag
     readingPlan.forEach(day => day.isCurrent = false);
     
-    // Find first incomplete day
     for (let i = 0; i < readingPlan.length; i++) {
         if (!readingPlan[i].completed) {
             readingPlan[i].isCurrent = true;
@@ -163,16 +152,19 @@ function updateCurrentDay() {
 function toggleDay(dayNum) {
     const day = readingPlan.find(d => d.day === dayNum);
     if (day) {
-        // Toggle only this specific day
         day.completed = !day.completed;
-        
-        // Update current day
         updateCurrentDay();
-        
-        // Save to localStorage
         saveProgress();
         
-        // Update UI
+        // Animate the card
+        const card = document.querySelector(`.day-card[data-day="${dayNum}"]`);
+        if (card) {
+            card.style.transform = 'scale(0.98)';
+            setTimeout(() => {
+                card.style.transform = '';
+            }, 150);
+        }
+        
         renderReadingList();
         updateProgressBar();
         renderCalendar();
@@ -191,69 +183,113 @@ function updateProgressBar() {
     document.getElementById('progress-fill').style.width = `${percentage}%`;
 }
 
-// Format passage text
+// Format passage text with improved styling
 function formatPassage(passages) {
     if (passages.length === 1) {
         const p = passages[0];
         if (p.startChapter === p.endChapter) {
-            return `${p.book} ${p.startChapter}`;
+            return `<span class="passage-book">${p.book}</span> <span class="passage-chapter">${p.startChapter}</span>`;
         } else {
-            return `${p.book} ${p.startChapter}-${p.endChapter}`;
+            return `<span class="passage-book">${p.book}</span> <span class="passage-chapter">${p.startChapter}-${p.endChapter}</span>`;
         }
     } else {
         return passages.map(p => {
             if (p.startChapter === p.endChapter) {
-                return `${p.book} ${p.startChapter}`;
+                return `<span class="passage-book">${p.book}</span> <span class="passage-chapter">${p.startChapter}</span>`;
             } else {
-                return `${p.book} ${p.startChapter}-${p.endChapter}`;
+                return `<span class="passage-book">${p.book}</span> <span class="passage-chapter">${p.startChapter}-${p.endChapter}</span>`;
             }
-        }).join(', ');
+        }).join('<span class="passage-separator"> • </span>');
     }
 }
 
-// Format date
+// Format date nicely
 function formatDate(date) {
     return date.toLocaleDateString('en-US', { 
+        weekday: 'short',
         month: 'short', 
-        day: 'numeric',
-        year: 'numeric'
+        day: 'numeric'
     });
 }
 
-// Render reading list
+// Get day suffix (st, nd, rd, th)
+function getDaySuffix(day) {
+    if (day >= 11 && day <= 13) return 'th';
+    switch (day % 10) {
+        case 1: return 'st';
+        case 2: return 'nd';
+        case 3: return 'rd';
+        default: return 'th';
+    }
+}
+
+// Render reading list with modern card design
 function renderReadingList() {
     const container = document.getElementById('reading-list');
     container.innerHTML = '';
     
     readingPlan.forEach(day => {
-        const passageText = formatPassage(day.passages);
+        const passageHTML = formatPassage(day.passages);
         const dateText = formatDate(day.date);
+        const dayNum = day.day;
+        const daySuffix = getDaySuffix(dayNum);
         
         const dayCard = document.createElement('div');
         dayCard.className = `day-card ${day.completed ? 'completed' : ''} ${day.isCurrent ? 'current' : ''}`;
+        dayCard.setAttribute('data-day', dayNum);
         
+        // Create a more visually appealing card layout
         dayCard.innerHTML = `
-            <div class="day-number">Day ${day.day}</div>
-            <div class="day-date">${dateText}</div>
-            <div class="day-content">
-                <div class="day-passage">${passageText}</div>
-                <div class="day-description">New Testament Reading</div>
+            <div class="card-left">
+                <div class="day-badge">
+                    <span class="day-number-large">${dayNum}</span>
+                    <span class="day-suffix">${daySuffix}</span>
+                </div>
+                <div class="date-badge">
+                    <span class="date-icon">📅</span>
+                    <span class="date-text">${dateText}</span>
+                </div>
             </div>
-            <div class="saint-icon" title="St. ${day.completed ? 'Completed' : 'Incomplete'}"></div>
-            <label class="checkbox-container">
-                <input type="checkbox" ${day.completed ? 'checked' : ''} data-day="${day.day}">
-                <span class="checkmark"></span>
-            </label>
+            <div class="card-middle">
+                <div class="passage-container">
+                    ${passageHTML}
+                </div>
+                <div class="reading-meta">
+                    <span class="testament-badge">New Testament</span>
+                    ${day.isCurrent ? '<span class="current-badge">Current Reading</span>' : ''}
+                </div>
+            </div>
+            <div class="card-right">
+                <label class="checkbox-wrapper">
+                    <input type="checkbox" ${day.completed ? 'checked' : ''} data-day="${day.day}">
+                    <span class="checkbox-custom">
+                        <svg class="checkbox-icon" viewBox="0 0 24 24">
+                            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
+                        </svg>
+                    </span>
+                </label>
+                <div class="completion-status ${day.completed ? 'completed' : ''}">
+                    ${day.completed ? 'Read' : 'Mark Read'}
+                </div>
+            </div>
         `;
         
         container.appendChild(dayCard);
     });
     
-    // Add event listeners to checkboxes
-    document.querySelectorAll('.checkbox-container input').forEach(checkbox => {
+    // Add event listeners to checkboxes with improved interaction
+    document.querySelectorAll('.checkbox-wrapper input').forEach(checkbox => {
         checkbox.addEventListener('change', (e) => {
-            e.stopPropagation(); // Prevent event bubbling
+            e.stopPropagation();
             const dayNum = parseInt(e.target.dataset.day);
+            
+            // Add ripple effect
+            const wrapper = e.target.closest('.checkbox-wrapper');
+            wrapper.classList.add('ripple');
+            setTimeout(() => {
+                wrapper.classList.remove('ripple');
+            }, 300);
+            
             toggleDay(dayNum);
         });
     });
@@ -266,27 +302,23 @@ function renderCalendar() {
     const year = currentCalendarDate.getFullYear();
     const month = currentCalendarDate.getMonth();
     
-    // Update month/year display
     document.getElementById('month-year-display').textContent = 
         currentCalendarDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
     
-    // Get first day of month and total days
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
-    const startingDayOfWeek = firstDay.getDay(); // 0 = Sunday
+    const startingDayOfWeek = firstDay.getDay();
     const totalDays = lastDay.getDate();
     
     const calendarDays = document.getElementById('calendar-days');
     calendarDays.innerHTML = '';
     
-    // Add empty cells for days before month starts
     for (let i = 0; i < startingDayOfWeek; i++) {
         const emptyDay = document.createElement('div');
         emptyDay.className = 'calendar-day empty';
         calendarDays.appendChild(emptyDay);
     }
     
-    // Add days of the month
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     
@@ -296,14 +328,14 @@ function renderCalendar() {
         
         const dayElement = document.createElement('div');
         dayElement.className = 'calendar-day';
-        dayElement.textContent = day;
         
-        // Check if this date has a reading
         const readingDay = readingPlan.find(d => {
             const dDate = new Date(d.date);
             dDate.setHours(0, 0, 0, 0);
             return dDate.getTime() === date.getTime();
         });
+        
+        let dayContent = `<span class="day-number">${day}</span>`;
         
         if (readingDay) {
             dayElement.classList.add('has-reading');
@@ -311,21 +343,25 @@ function renderCalendar() {
                 dayElement.classList.add('completed-reading');
             }
             
-            // Add tooltip with reading info
-            const passageText = formatPassage(readingDay.passages);
-            dayElement.title = `Day ${readingDay.day}: ${passageText}`;
+            const passageText = readingDay.passages.map(p => 
+                `${p.book} ${p.startChapter}${p.startChapter !== p.endChapter ? '-' + p.endChapter : ''}`
+            ).join(', ');
+            
+            dayElement.setAttribute('data-tooltip', `Day ${readingDay.day}: ${passageText}`);
+            dayContent += `<span class="reading-indicator"></span>`;
         }
         
-        // Check if it's today
         if (date.getTime() === today.getTime()) {
             dayElement.classList.add('today');
+            dayContent += `<span class="today-indicator">Today</span>`;
         }
         
+        dayElement.innerHTML = dayContent;
         calendarDays.appendChild(dayElement);
     }
 }
 
-// Update today's reading highlight
+// Update today's reading highlight with enhanced design
 function updateTodayHighlight() {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -339,39 +375,57 @@ function updateTodayHighlight() {
     const highlightElement = document.getElementById('today-highlight');
     
     if (todayReading) {
-        const passageText = formatPassage(todayReading.passages);
-        const dateText = formatDate(todayReading.date);
+        const passageHTML = formatPassage(todayReading.passages);
+        const dateText = today.toLocaleDateString('en-US', { 
+            weekday: 'long',
+            month: 'long', 
+            day: 'numeric',
+            year: 'numeric'
+        });
         
         highlightElement.innerHTML = `
             <div class="today-header">
-                <span class="today-label">Today's Reading</span>
-                <span class="today-date">${dateText}</span>
+                <div class="today-icon">📖</div>
+                <div class="today-title-section">
+                    <span class="today-label">Today's Reading</span>
+                    <span class="today-full-date">${dateText}</span>
+                </div>
             </div>
             <div class="today-content">
-                <div class="today-passage">Day ${todayReading.day}: ${passageText}</div>
+                <div class="today-passage-section">
+                    <div class="today-day">Day ${todayReading.day}</div>
+                    <div class="today-passage">${passageHTML}</div>
+                </div>
                 <button class="btn-mark-read ${todayReading.completed ? 'completed' : ''}" 
                         data-day="${todayReading.day}" 
                         ${todayReading.completed ? 'disabled' : ''}>
-                    ${todayReading.completed ? '✓ Completed' : 'Mark as Read'}
+                    <span class="btn-icon">${todayReading.completed ? '✓' : '◉'}</span>
+                    <span class="btn-text">${todayReading.completed ? 'Completed Today' : 'Mark as Read'}</span>
                 </button>
             </div>
         `;
         
-        // Add event listener to the button
         const markReadBtn = highlightElement.querySelector('.btn-mark-read');
         if (markReadBtn && !todayReading.completed) {
             markReadBtn.addEventListener('click', () => {
+                markReadBtn.classList.add('btn-pulse');
+                setTimeout(() => {
+                    markReadBtn.classList.remove('btn-pulse');
+                }, 300);
                 toggleDay(todayReading.day);
             });
         }
     } else {
         highlightElement.innerHTML = `
             <div class="today-header">
-                <span class="today-label">Today's Reading</span>
-                <span class="today-date">${formatDate(today)}</span>
+                <div class="today-icon">📅</div>
+                <div class="today-title-section">
+                    <span class="today-label">No Reading Today</span>
+                    <span class="today-full-date">${today.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</span>
+                </div>
             </div>
             <div class="today-content">
-                <div class="today-passage">No reading scheduled for today</div>
+                <div class="today-message">Your reading plan continues tomorrow</div>
             </div>
         `;
     }
@@ -382,15 +436,15 @@ async function setupNotifications() {
     if ('Notification' in window && 'serviceWorker' in navigator) {
         const banner = document.getElementById('notification-banner');
         
-        if (Notification.pEphission === 'granted') {
+        if (Notification.permission === 'granted') {
             banner.classList.add('hidden');
             scheduleDailyNotification();
-        } else if (Notification.pEphission !== 'denied') {
+        } else if (Notification.permission !== 'denied') {
             banner.classList.remove('hidden');
             
             document.getElementById('enable-notifications').addEventListener('click', async () => {
-                const pEphission = await Notification.requestPEphission();
-                if (pEphission === 'granted') {
+                const permission = await Notification.requestPermission();
+                if (permission === 'granted') {
                     banner.classList.add('hidden');
                     scheduleDailyNotification();
                 }
@@ -423,7 +477,11 @@ function scheduleDailyNotification() {
                         badge: 'icons/icon-72x72.png',
                         vibrate: [200, 100, 200],
                         tag: 'daily-reading',
-                        renotify: true
+                        renotify: true,
+                        actions: [
+                            { action: 'open', title: 'Open Reading' },
+                            { action: 'mark', title: 'Mark as Read' }
+                        ]
                     });
                     
                     setInterval(() => {
@@ -457,26 +515,32 @@ function initCalendarNavigation() {
     });
 }
 
+// Add smooth scrolling and animations
+function initSmoothScrolling() {
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                target.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        });
+    });
+}
+
 // Initialize app
 document.addEventListener('DOMContentLoaded', () => {
-    // Load progress from localStorage
     loadProgress();
-    
-    // Render initial reading list
     renderReadingList();
-    
-    // Update progress bar
     updateProgressBar();
-    
-    // Setup calendar
     initCalendarNavigation();
     renderCalendar();
-    
-    // Update today's highlight
     updateTodayHighlight();
-    
-    // Setup notifications
     setupNotifications();
+    initSmoothScrolling();
     
     // Register service worker for PWA
     if ('serviceWorker' in navigator) {
@@ -492,8 +556,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// Export for testing (if needed)
+// Export for testing
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = { readingPlan, bibleData };
-
 }
