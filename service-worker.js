@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ermi-cache-v1';
+const CACHE_NAME = 'Ephi-cache-v1';
 const urlsToCache = [
   '/',
   '/index.html',
@@ -43,4 +43,5 @@ self.addEventListener('activate', event => {
 self.addEventListener('notificationclick', event => {
   event.notification.close();
   event.waitUntil(clients.openWindow('/'));
+
 });
