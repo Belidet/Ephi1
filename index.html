@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ermi - 55-Day New Testament Reading</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#D4AF37">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Ermi">
+    
+    <!-- Link to Manifest -->
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- Apple Touch Icons -->
+    <link rel="apple-touch-icon" href="images.jpg">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700&family=Cormorant+Garamond:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Header with Icon -->
+    <header class="header">
+        <div class="header-icon-circle">
+            <div class="icon-circle-frame">
+                <div class="circle-outer"></div>
+                <div class="circle-inner"></div>
+                <img src="images.jpg" alt="Eastern Orthodox Icon of Christ on the Cross" class="orthodox-icon">
+                <div class="circle-dots">
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                </div>
+            </div>
+        </div>
+        <h1 class="app-title">Ermi</h1>
+        <p class="app-subtitle">55-Day New Testament Reading Plan</p>
+    </header>
+    
+    <!-- Calendar Section -->
+    <div class="calendar-container">
+        <div class="calendar-header">
+            <button id="prev-month" class="calendar-nav">←</button>
+            <h2 id="month-year-display"></h2>
+            <button id="next-month" class="calendar-nav">→</button>
+        </div>
+        <div class="calendar-weekdays">
+            <div>Sun</div>
+            <div>Mon</div>
+            <div>Tue</div>
+            <div>Wed</div>
+            <div>Thu</div>
+            <div>Fri</div>
+            <div>Sat</div>
+        </div>
+        <div id="calendar-days" class="calendar-days"></div>
+    </div>
+
+    <!-- Today's Reading Highlight -->
+    <div class="today-highlight" id="today-highlight"></div>
+
+    <!-- Progress Bar -->
+    <div class="progress-container">
+        <div class="progress-stats">
+            <span id="completed-count">0</span>/<span id="total-days">55</span> Days Completed
+        </div>
+        <div class="progress-bar">
+            <div id="progress-fill" class="progress-fill" style="width: 0%"></div>
+        </div>
+    </div>
+
+    <!-- Notification Permission Banner -->
+    <div id="notification-banner" class="notification-banner hidden">
+        <p>Receive daily reminders for your reading</p>
+        <button id="enable-notifications" class="btn-notification">Enable Reminders</button>
+    </div>
+
+    <!-- Main Reading List -->
+    <main class="reading-list" id="reading-list"></main>
+
+    <!-- Footer with Orthodox Cross -->
+    <footer class="footer">
+        <svg class="orthodox-cross" viewBox="0 0 100 100" width="40" height="40">
+            <line x1="50" y1="20" x2="50" y2="80" stroke="#D4AF37" stroke-width="4"/>
+            <line x1="20" y1="50" x2="80" y2="50" stroke="#D4AF37" stroke-width="4"/>
+            <line x1="50" y1="35" x2="65" y2="50" stroke="#D4AF37" stroke-width="4"/>
+            <line x1="50" y1="65" x2="65" y2="50" stroke="#D4AF37" stroke-width="4"/>
+            <line x1="50" y1="35" x2="35" y2="50" stroke="#D4AF37" stroke-width="4"/>
+            <line x1="50" y1="65" x2="35" y2="50" stroke="#D4AF37" stroke-width="4"/>
+        </svg>
+        <p>Ἐγώ εἰμι τὸ φῶς τοῦ κόσμου</p>
+        <p class="small">(I am the light of the world) - John 8:12</p>
+    </footer>
+
+    <!-- JavaScript -->
+    <script src="app.js"></script>
+</body>
+</html>
