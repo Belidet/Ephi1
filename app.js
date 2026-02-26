@@ -1,6 +1,169 @@
 // ===== Ephi App - 55-Day New Testament Reading Tracker =====
 // Enhanced UI/UX Version with Modern Card Design
 
+// ===== Vercel Blob Cloud Storage Integration =====
+// NEW: Add this section right after the opening comment
+const API_BASE_URL = window.location.origin + '/api';
+
+// Track last sync time to avoid too many requests
+let lastCloudSave = 0;
+const CLOUD_SAVE_DEBOUNCE = 2000; // 2 seconds
+
+// Load progress from cloud
+async function loadProgressFromCloud() {
+  try {
+    const response = await fetch(`${API_BASE_URL}/sync`);
+    if (!response.ok) throw new Error('Failed to load from cloud');
+    
+    const data = await response.json();
+    console.log('Loaded from cloud:', data);
+    return data.completedDays || [];
+  } catch (error) {
+    console.error('Cloud load failed:', error);
+    return null;
+  }
+}
+
+// Save progress to cloud with debounce
+async function saveProgressToCloud(completedDays, force = false) {
+  const now = Date.now();
+  
+  // Debounce saves to prevent too many requests
+  if (!force && now - lastCloudSave < CLOUD_SAVE_DEBOUNCE) {
+    console.log('Debouncing cloud save...');
+    return false;
+  }
+  
+  try {
+    const response = await fetch(`${API_BASE_URL}/sync`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ completedDays })
+    });
+    
+    if (!response.ok) throw new Error('Failed to save to cloud');
+    
+    lastCloudSave = now;
+    console.log('Saved to cloud successfully');
+    return true;
+  } catch (error) {
+    console.error('Cloud save failed:', error);
+    return false;
+  }
+}
+
+// Sync: Try cloud first, fallback to localStorage
+async function syncProgress() {
+  // Try cloud first
+  const cloudProgress = await loadProgressFromCloud();
+  
+  if (cloudProgress !== null) {
+    // Cloud has data - use it
+    console.log('Using cloud data');
+    return cloudProgress;
+  } else {
+    // Cloud failed - use localStorage
+    console.log('Using local data');
+    const localProgress = localStorage.getItem('ephi-progress');
+    return localProgress ? JSON.parse(localProgress) : [];
+  }
+}
+
+// Advanced: Merge cloud and local data if both exist (optional but recommended)
+async function smartSync() {
+  const cloudProgress = await loadProgressFromCloud();
+  const localProgress = localStorage.getItem('ephi-progress');
+  const localDays = localProgress ? JSON.parse(localProgress) : [];
+  
+  if (!cloudProgress) {
+    // No cloud data, use local
+    return localDays;
+  }
+  
+  if (cloudProgress.length > localDays.length) {
+    // Cloud has more progress - use cloud
+    console.log('Cloud has more progress');
+    return cloudProgress;
+  } else if (localDays.length > cloudProgress.length) {
+    // Local has more progress - use local and upload to cloud
+    console.log('Local has more progress, uploading to cloud');
+    await saveProgressToCloud(localDays, true);
+    return localDays;
+  } else {
+    // Same length, use cloud (or either)
+    return cloudProgress;
+  }
+}
+
+// Add a manual sync button to header
+function addSyncButton() {
+  const header = document.querySelector('.header');
+  if (!header) return;
+  
+  // Check if button already exists
+  if (document.getElementById('cloud-sync-btn')) return;
+  
+  const syncBtn = document.createElement('button');
+  syncBtn.id = 'cloud-sync-btn';
+  syncBtn.innerHTML = '☁️ Sync';
+  syncBtn.style.cssText = `
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: var(--gold);
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: var(--border-radius-xl);
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 600;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow-sm);
+    z-index: 100;
+  `;
+  
+  syncBtn.addEventListener('mouseenter', () => {
+    syncBtn.style.backgroundColor = 'transparent';
+    syncBtn.style.borderColor = 'var(--gold)';
+    syncBtn.style.color = 'var(--gold-dark)';
+  });
+  
+  syncBtn.addEventListener('mouseleave', () => {
+    syncBtn.style.backgroundColor = 'var(--gold)';
+    syncBtn.style.borderColor = 'transparent';
+    syncBtn.style.color = 'var(--text-dark)';
+  });
+  
+  syncBtn.addEventListener('click', async () => {
+    const originalText = syncBtn.innerHTML;
+    syncBtn.innerHTML = '⏳ Syncing...';
+    syncBtn.disabled = true;
+    
+    const completedDays = readingPlan
+      .filter(day => day.completed)
+      .map(day => day.day);
+    
+    const success = await saveProgressToCloud(completedDays, true);
+    
+    if (success) {
+      syncBtn.innerHTML = '✅ Synced!';
+      setTimeout(() => {
+        syncBtn.innerHTML = '☁️ Sync';
+        syncBtn.disabled = false;
+      }, 2000);
+    } else {
+      syncBtn.innerHTML = '❌ Failed';
+      setTimeout(() => {
+        syncBtn.innerHTML = '☁️ Sync';
+        syncBtn.disabled = false;
+      }, 2000);
+    }
+  });
+  
+  header.appendChild(syncBtn);
+}
+
 // Bible data structure
 const bibleData = {
     books: [
@@ -107,33 +270,48 @@ function assignDatesToPlan() {
 }
 assignDatesToPlan();
 
-// Load saved progress from localStorage
-function loadProgress() {
-    const savedProgress = localStorage.getItem('ephi-progress');
-    if (savedProgress) {
-        const completedDays = JSON.parse(savedProgress);
+// ===== MODIFIED FUNCTION: Load saved progress from cloud + localStorage =====
+async function loadProgress() {
+    // Show loading state
+    const container = document.getElementById('reading-list');
+    if (container) {
+        container.innerHTML = '<div style="text-align: center; padding: 2rem; color: var(--deep-blue);">Loading your progress...</div>';
+    }
+    
+    // Use smartSync to get the best available data
+    const completedDays = await smartSync();
+    
+    // Apply loaded progress
+    if (completedDays && completedDays.length > 0) {
         completedDays.forEach(dayNum => {
             const day = readingPlan.find(d => d.day === dayNum);
             if (day) {
                 day.completed = true;
             }
         });
-        
-        updateCurrentDay();
     }
     
+    updateCurrentDay();
     renderReadingList();
     updateProgressBar();
     renderCalendar();
     updateTodayHighlight();
+    
+    // Add sync button to header
+    addSyncButton();
 }
 
-// Save progress to localStorage
+// ===== MODIFIED FUNCTION: Save progress to both localStorage AND cloud =====
 function saveProgress() {
     const completedDays = readingPlan
         .filter(day => day.completed)
         .map(day => day.day);
+    
+    // Always save to localStorage (fast, works offline)
     localStorage.setItem('ephi-progress', JSON.stringify(completedDays));
+    
+    // Save to cloud (async, doesn't block UI)
+    saveProgressToCloud(completedDays);
 }
 
 // Update current day based on progress
@@ -531,14 +709,18 @@ function initSmoothScrolling() {
     });
 }
 
-// Initialize app
+// ===== MODIFIED: Initialize app with async loadProgress =====
 document.addEventListener('DOMContentLoaded', () => {
-    loadProgress();
-    renderReadingList();
-    updateProgressBar();
+    // Make sure to call loadProgress as async
+    loadProgress().then(() => {
+        // These are now called inside loadProgress to avoid duplication
+        // renderReadingList();
+        // updateProgressBar();
+        // renderCalendar();
+        // updateTodayHighlight();
+    });
+    
     initCalendarNavigation();
-    renderCalendar();
-    updateTodayHighlight();
     setupNotifications();
     initSmoothScrolling();
     
